@@ -14,29 +14,23 @@ package:
   version: ${{ version }}
 
 source:
-  url: http://software.ligo.org/lscsoft/source/${{ name }}-${{ version }}.tar.gz
+  url: https://software.ligo.org/sources/source/${{ name }}-${{ version }}.tar.gz
   sha256: c0835eabb9c3b4b4893471248d24724c3180306facd37d91a24064e297e0d3d2
 
 build:
   dynamic_linking:
-    missing_dso_allowlist:
-      - if: osx
-        then: /usr/lib/libSystem.B.dylib
     overdepending_behavior: error
-    overlinking_behavior: error
   number: 0
   skip: win
 
 requirements:
   build:
     - ${{ compiler('c') }}
-    - ${{ stdlib("c") }}
     - ${{ compiler('cxx') }}
+    - ${{ stdlib('c') }}
     - cmake >=3.6
-    - if: unix
-      then:
-        - make
-        - pkg-config
+    - make
+    - pkg-config
   host:
     - ldas-tools-al >=${{ ldas_tools_al_version }}
     - ldas-tools-cmake >=${{ ldas_tools_cmake_version }}
@@ -50,9 +44,7 @@ requirements:
 tests:
   - requirements:
       run:
-        - if: unix
-          then:
-            - pkg-config
+        - pkg-config
     script:
       # framecpp 4.x: --channel-adc-type triggers all_type_frame() which
       # emits Z0:RAMPED_<TYPE>_1 channels (vs the default test_frame() path
@@ -60,10 +52,8 @@ tests:
       # See https://git.ligo.org/computing/ldastools/LDAS_Tools/-/issues/283
       - framecpp_sample --channel-adc-type int_8u
       - "ldas_analysis_ready --frame-file-pattern \"*.gwf\" --ifo Z0 --analysis-ready-channel RAMPED_INT_8U_1"
-      - if: unix
-        then:
-          - test -d ${PREFIX}/include/frameAPI
-          - pkg-config --print-errors --exact-version ${{ version }} ldastools-ldasframe
+      - test -d ${PREFIX}/include/frameAPI
+      - pkg-config --print-errors --exact-version ${{ version }} ldastools-ldasframe
 
 about:
   license: GPL-2.0-or-later
