@@ -2,41 +2,35 @@ schema_version: 1
 
 context:
   name: ldas-tools-frameAPI
-  version: "3.0.7"
-  ldas_tools_cmake_version: 1.4.1
-  ldas_tools_al_version: 2.8.0
-  ldas_tools_framecpp_version: 4.0.1
-  ldas_tools_filters_version: 2.6.8
-  ldas_tools_ldasgen_version: 2.7.5
+  version: "3.0.8"
+  ldas_tools_cmake_version: 1.5.0
+  ldas_tools_al_version: 2.10.0
+  ldas_tools_framecpp_version: 4.1.0
+  ldas_tools_filters_version: 2.6.10
+  ldas_tools_ldasgen_version: 2.7.7
 
 package:
   name: ${{ name|lower }}
   version: ${{ version }}
 
 source:
-  url: http://software.ligo.org/lscsoft/source/${{ name }}-${{ version }}.tar.gz
-  sha256: 7fd03aa25103729877cf8df0c547fc6b516a538a2b24eac6d3761e800b9cae7f
+  url: https://software.ligo.org/sources/source/${{ name }}-${{ version }}.tar.gz
+  sha256: c0835eabb9c3b4b4893471248d24724c3180306facd37d91a24064e297e0d3d2
 
 build:
   dynamic_linking:
-    missing_dso_allowlist:
-      - if: osx
-        then: /usr/lib/libSystem.B.dylib
     overdepending_behavior: error
-    overlinking_behavior: error
-  number: 1
+  number: 0
   skip: win
 
 requirements:
   build:
     - ${{ compiler('c') }}
-    - ${{ stdlib("c") }}
     - ${{ compiler('cxx') }}
-    - cmake >=3.6
-    - if: unix
-      then:
-        - make
-        - pkg-config
+    - ${{ stdlib('c') }}
+    - cmake >=3.12,<4.0.0a0
+    - make
+    - pkg-config
   host:
     - ldas-tools-al >=${{ ldas_tools_al_version }}
     - ldas-tools-cmake >=${{ ldas_tools_cmake_version }}
@@ -48,11 +42,12 @@ requirements:
     - ${{ pin_subpackage("ldas-tools-frameapi", upper_bound="x.x") }}
 
 tests:
+  - package_contents:
+      include:
+        - frameAPI/Frame.hh
   - requirements:
       run:
-        - if: unix
-          then:
-            - pkg-config
+        - pkg-config
     script:
       # framecpp 4.x: --channel-adc-type triggers all_type_frame() which
       # emits Z0:RAMPED_<TYPE>_1 channels (vs the default test_frame() path
@@ -60,10 +55,7 @@ tests:
       # See https://git.ligo.org/computing/ldastools/LDAS_Tools/-/issues/283
       - framecpp_sample --channel-adc-type int_8u
       - "ldas_analysis_ready --frame-file-pattern \"*.gwf\" --ifo Z0 --analysis-ready-channel RAMPED_INT_8U_1"
-      - if: unix
-        then:
-          - test -d ${PREFIX}/include/frameAPI
-          - pkg-config --print-errors --exact-version ${{ version }} ldastools-ldasframe
+      - pkg-config --print-errors --exact-version ${{ version }} ldastools-ldasframe
 
 about:
   license: GPL-2.0-or-later
