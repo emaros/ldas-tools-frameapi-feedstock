@@ -42,6 +42,9 @@ requirements:
     - ${{ pin_subpackage("ldas-tools-frameapi", upper_bound="x.x") }}
 
 tests:
+  - package_contents:
+      include:
+        - frameAPI/Frame.hh
   - requirements:
       run:
         - pkg-config
@@ -52,7 +55,6 @@ tests:
       # See https://git.ligo.org/computing/ldastools/LDAS_Tools/-/issues/283
       - framecpp_sample --channel-adc-type int_8u
       - "ldas_analysis_ready --frame-file-pattern \"*.gwf\" --ifo Z0 --analysis-ready-channel RAMPED_INT_8U_1"
-      - test -d ${PREFIX}/include/frameAPI
       - pkg-config --print-errors --exact-version ${{ version }} ldastools-ldasframe
 
 about:
